@@ -35,6 +35,12 @@ cd btcpayserver-decred-plugin
 dotnet build Plugins/Decred/BTCPayServer.Plugins.Decred.csproj
 ```
 
+If you get `NETSDK1226: Prune Package data not found` errors, apply this workaround before building:
+
+```bash
+echo '<Project><PropertyGroup><AllowMissingPrunePackageData>true</AllowMissingPrunePackageData></PropertyGroup></Project>' > submodules/btcpayserver/Directory.Build.props
+```
+
 ### Testing with the dcrdex simnet harness
 
 ```bash
@@ -45,6 +51,8 @@ cd /path/to/dcrdex/dex/testing/dcr && bash harness.sh
 cd btcpayserver-decred-plugin
 dotnet run --project Tests/HarnessTest.csproj
 ```
+
+For full end-to-end testing (running BTCPayServer with the plugin, creating invoices, and verifying payments), see [docs/e2e-testing.md](docs/e2e-testing.md).
 
 ## License
 

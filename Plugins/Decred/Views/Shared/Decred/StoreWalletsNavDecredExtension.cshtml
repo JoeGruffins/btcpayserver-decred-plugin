@@ -1,0 +1,9 @@
+@using Microsoft.AspNetCore.Routing
+@{
+    var storeId = Context.GetRouteValue("storeId")?.ToString();
+}
+<li class="nav-item">
+    <a class="nav-link" href="/stores/@storeId/decredlike/DCR">
+        Decred
+    </a>
+</li>

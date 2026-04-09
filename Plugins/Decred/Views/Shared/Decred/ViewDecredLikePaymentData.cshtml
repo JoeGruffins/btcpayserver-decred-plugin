@@ -1,11 +1,12 @@
 @using BTCPayServer.Payments
 @using BTCPayServer.Plugins.Decred.Payments
 @using BTCPayServer.Services.Invoices
-@model IEnumerable<BTCPayServer.Services.Invoices.PaymentEntity>
-
 @{
+    var paymentEntities = Model as IEnumerable<PaymentEntity>;
+    if (paymentEntities == null) return;
+
     var pmi = PaymentTypes.CHAIN.GetPaymentMethodId("DCR");
-    var payments = Model.Where(p => p.PaymentMethodId == pmi).ToList();
+    var payments = paymentEntities.Where(p => p.PaymentMethodId == pmi).ToList();
     if (!payments.Any()) return;
 }
 

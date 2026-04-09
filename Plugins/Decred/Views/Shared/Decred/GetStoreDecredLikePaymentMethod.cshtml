@@ -1,7 +1,6 @@
 @model BTCPayServer.Plugins.Decred.Controllers.DecredStoreViewModel
 @{
     ViewData["Title"] = $"{Model.CryptoCode} Settings";
-    Layout = "../Shared/_NavLayout.cshtml";
 }
 
 <h2 class="mb-4">@ViewData["Title"]</h2>
@@ -52,7 +51,7 @@
         </div>
 
         @* Payment method settings *@
-        <form method="post">
+        <form method="post" asp-antiforgery="true">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Payment Settings</h5>

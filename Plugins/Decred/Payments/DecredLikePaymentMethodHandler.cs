@@ -24,7 +24,7 @@ public class DecredLikePaymentMethodHandler : IPaymentMethodHandler
 
     public JsonSerializer Serializer { get; } = new();
 
-    record Prepare(Task<string> ReservedAddress, Task<decimal> FeeRate);
+    record Prepare(Task<string> ReservedAddress);
 
     public Task BeforeFetchingRates(PaymentMethodContext context)
     {
@@ -32,9 +32,8 @@ public class DecredLikePaymentMethodHandler : IPaymentMethodHandler
         context.Prompt.Divisibility = _network.Divisibility;
 
         var walletClient = _rpcProvider.GetWalletClient(_network.CryptoCode);
-        var daemonClient = _rpcProvider.GetDaemonClient(_network.CryptoCode);
 
-        if (walletClient == null || daemonClient == null)
+        if (walletClient == null)
         {
             context.Prompt.Inactive = true;
             return Task.CompletedTask;
@@ -43,15 +42,8 @@ public class DecredLikePaymentMethodHandler : IPaymentMethodHandler
         context.State = new Prepare(
             ReservedAddress: Task.Run(async () =>
             {
-                // getnewaddress with gappolicy=wrap to avoid gap limit issues
                 return await walletClient.SendCommandAsync<string>(
                     "getnewaddress", ["default", "ignore"]);
-            }),
-            FeeRate: Task.Run(async () =>
-            {
-                var estimate = await daemonClient.SendCommandAsync<RPC.Models.EstimateSmartFeeResponse>(
-                    "estimatesmartfee", [(object)6]);
-                return estimate.FeeRate;
             })
         );
 
@@ -67,7 +59,6 @@ public class DecredLikePaymentMethodHandler : IPaymentMethodHandler
             throw new PaymentMethodUnavailableException("Prompt not prepared");
 
         var address = await prepare.ReservedAddress;
-        var feeRate = await prepare.FeeRate;
 
         // Store prompt details (account name + settlement threshold from config)
         var storeConfig = ParsePaymentMethodConfig(context.PaymentMethodConfig) as DecredPaymentPromptDetails
@@ -80,7 +71,7 @@ public class DecredLikePaymentMethodHandler : IPaymentMethodHandler
         };
 
         context.Prompt.Destination = address;
-        context.Prompt.PaymentMethodFee = feeRate / 1000m; // Convert from per-kB to per-byte, approximate
+        context.Prompt.PaymentMethodFee = 0;
         context.Prompt.Details = JObject.FromObject(promptDetails, Serializer);
 
         context.TrackedDestinations.Add(address);

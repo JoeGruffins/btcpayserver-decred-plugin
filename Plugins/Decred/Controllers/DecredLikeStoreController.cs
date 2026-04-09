@@ -6,6 +6,7 @@ using BTCPayServer.Payments;
 using BTCPayServer.Plugins.Decred.Payments;
 using BTCPayServer.Plugins.Decred.Services;
 using BTCPayServer.Services.Invoices;
+using BTCPayServer.Services.Stores;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
@@ -19,18 +20,21 @@ public class DecredLikeStoreController : Controller
 {
     readonly DecredRpcProvider _rpcProvider;
     readonly PaymentMethodHandlerDictionary _handlers;
+    readonly StoreRepository _storeRepo;
 
     public DecredLikeStoreController(
         DecredRpcProvider rpcProvider,
-        PaymentMethodHandlerDictionary handlers)
+        PaymentMethodHandlerDictionary handlers,
+        StoreRepository storeRepo)
     {
         _rpcProvider = rpcProvider;
         _handlers = handlers;
+        _storeRepo = storeRepo;
     }
 
     StoreData StoreData => HttpContext.GetStoreData();
 
-    [HttpGet]
+    [HttpGet("")]
     public IActionResult GetStoreDecredLikePaymentMethod(string cryptoCode)
     {
         cryptoCode = cryptoCode.ToUpperInvariant();
@@ -57,8 +61,8 @@ public class DecredLikeStoreController : Controller
         });
     }
 
-    [HttpPost]
-    public IActionResult SetStoreDecredLikePaymentMethod(string cryptoCode,
+    [HttpPost("")]
+    public async Task<IActionResult> SetStoreDecredLikePaymentMethod(string cryptoCode,
         DecredStoreViewModel model)
     {
         cryptoCode = cryptoCode.ToUpperInvariant();
@@ -76,8 +80,11 @@ public class DecredLikeStoreController : Controller
 
         StoreData.SetPaymentMethodConfig(pmi, JObject.FromObject(promptDetails));
 
+        await _storeRepo.UpdateStore(StoreData);
+
         TempData[WellKnownTempData.SuccessMessage] = $"{cryptoCode} payment method updated.";
-        return RedirectToAction(nameof(GetStoreDecredLikePaymentMethod), new { cryptoCode });
+        var storeId = StoreData.Id;
+        return Redirect($"/stores/{storeId}/decredlike/{cryptoCode}");
     }
 }
 

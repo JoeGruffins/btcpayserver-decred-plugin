@@ -1,12 +1,12 @@
 @using BTCPayServer.Plugins.Decred.Services
-@model IEnumerable<BTCPayServer.Abstractions.Contracts.ISyncStatus>
+@inject DecredRpcProvider RpcProvider
 
-@foreach (var status in Model.OfType<DecredSyncStatus>())
+@foreach (var cryptoCode in RpcProvider.GetCryptoCodes())
 {
-    var summary = status.Summary;
+    var summary = RpcProvider.GetSummary(cryptoCode);
     <div class="d-flex align-items-center gap-2">
-        <span class="badge @(status.Available ? "bg-success" : "bg-warning")">
-            @status.CryptoCode
+        <span class="badge @(summary is { DaemonAvailable: true, Synced: true } ? "bg-success" : "bg-warning")">
+            @cryptoCode
         </span>
         @if (summary == null || !summary.DaemonAvailable)
         {

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BTCPayServer.Data;
+using BTCPayServer.Events;
 using BTCPayServer.HostedServices;
 using BTCPayServer.Payments;
 using BTCPayServer.Plugins.Decred.Payments;
@@ -59,7 +60,11 @@ public class DecredListener : EventHostedServiceBase
                 break;
 
             case DecredEvent { TransactionHash: not null } txEvent:
-                await OnTransactionUpdated(txEvent.CryptoCode, txEvent.TransactionHash, cancellationToken);
+                // "poll" is a synthetic event from the summary updater
+                if (txEvent.TransactionHash == "poll")
+                    await UpdateAnyPendingPayments(txEvent.CryptoCode, cancellationToken);
+                else
+                    await OnTransactionUpdated(txEvent.CryptoCode, txEvent.TransactionHash, cancellationToken);
                 break;
         }
     }
@@ -193,6 +198,7 @@ public class DecredListener : EventHostedServiceBase
                 existing.Status = status;
                 existing.Details = JToken.FromObject(paymentData);
                 await _paymentService.UpdatePayments([existing]);
+                EventAggregator.Publish(new InvoiceNeedUpdateEvent(invoice.Id));
             }
             return;
         }
@@ -207,7 +213,15 @@ public class DecredListener : EventHostedServiceBase
         };
         newPayment.Set(invoice, handler, paymentData);
 
-        await _paymentService.AddPayment(newPayment);
+        var payment = await _paymentService.AddPayment(newPayment);
+        if (payment != null)
+        {
+            // Notify BTCPayServer that a payment was received so it updates the invoice status
+            var updatedInvoice = await _invoiceRepository.GetInvoice(invoice.Id);
+            EventAggregator.Publish(new InvoiceEvent(updatedInvoice, InvoiceEvent.ReceivedPayment)
+                { Payment = payment });
+            EventAggregator.Publish(new InvoiceNeedUpdateEvent(invoice.Id));
+        }
 
         _logger.LogInformation(
             "Payment detected for invoice {InvoiceId}: {Amount} DCR, tx {TxId}, {Confirmations} confirmations",
