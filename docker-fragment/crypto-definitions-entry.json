@@ -1,0 +1,8 @@
+{
+    "Crypto": "dcr",
+    "CryptoFragment": "decred",
+    "CLightningFragment": null,
+    "LNDFragment": null,
+    "EclairFragment": null,
+    "PhoenixdFragment": null
+}
