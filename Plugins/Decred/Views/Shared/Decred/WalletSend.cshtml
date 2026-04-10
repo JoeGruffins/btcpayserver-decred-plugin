@@ -1,0 +1,61 @@
+@model BTCPayServer.Plugins.Decred.Controllers.DecredWalletSendViewModel
+@{
+    ViewData["Title"] = $"{Model.CryptoCode} Wallet - Send";
+}
+
+<h2 class="mb-4">@ViewData["Title"]</h2>
+
+<div class="row">
+    <div class="col-xl-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Balance</h5>
+            </div>
+            <div class="card-body">
+                <div>
+                    <span class="fs-4">@Model.SpendableBalance @Model.CryptoCode</span>
+                    <span class="text-muted ms-2">spendable</span>
+                </div>
+                @if (Model.TotalBalance != Model.SpendableBalance)
+                {
+                    <div class="text-muted mt-1">
+                        @Model.TotalBalance @Model.CryptoCode total
+                    </div>
+                }
+                @if (Model.UnconfirmedBalance != 0)
+                {
+                    <div class="text-muted mt-1">
+                        @Model.UnconfirmedBalance @Model.CryptoCode unconfirmed
+                    </div>
+                }
+            </div>
+        </div>
+
+        <form method="post" asp-antiforgery="true">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Send</h5>
+                </div>
+                <div class="card-body">
+                    @Html.ValidationSummary(true, null, new { @class = "text-danger" })
+
+                    <div class="form-group mb-3">
+                        <label asp-for="DestinationAddress" class="form-label">Destination Address</label>
+                        <input asp-for="DestinationAddress" class="form-control" placeholder="Ds..." />
+                        <span asp-validation-for="DestinationAddress" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label asp-for="Amount" class="form-label">Amount (@Model.CryptoCode)</label>
+                        <input asp-for="Amount" type="number" class="form-control" step="any" min="0.00000001" placeholder="0.00" />
+                        <span asp-validation-for="Amount" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary">Send Transaction</button>
+                    <a href="/stores/@Context.GetRouteValue("storeId")/decredlike/@Model.CryptoCode" class="btn btn-secondary ms-2">Back to Settings</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

@@ -29,8 +29,8 @@ This opens a tmux session. Open a **new terminal** for the remaining steps.
 The harness provides:
 
 - dcrd RPC at `https://127.0.0.1:19561` (user: `user`, pass: `pass`)
-- dcrwallet RPC at `https://127.0.0.1:19562` (user: `user`, pass: `pass`)
-- TLS cert at `~/dextest/dcr/alpha/rpc.cert`
+- trading1 wallet RPC at `https://127.0.0.1:19581` (user: `user`, pass: `pass`)
+- TLS certs at `~/dextest/dcr/{alpha,trading1}/rpc.cert`
 
 Verify it's running:
 
@@ -76,7 +76,7 @@ cd btcpayserver-decred-plugin
 
 # Set Decred harness env vars
 export BTCPAY_DCR_DAEMON_URI="https://127.0.0.1:19561"
-export BTCPAY_DCR_WALLET_DAEMON_URI="https://127.0.0.1:19562"
+export BTCPAY_DCR_WALLET_DAEMON_URI="https://127.0.0.1:19581"
 export BTCPAY_DCR_DAEMON_USERNAME="user"
 export BTCPAY_DCR_DAEMON_PASSWORD="pass"
 
@@ -146,6 +146,40 @@ cd ~/dextest/dcr/harness-ctl && ./mine-alpha 1
 1. Wait up to 15 seconds (the plugin polls every 15s)
 2. The invoice should show the payment as detected
 3. After mining a block, the invoice should move to "Settled" status
+
+## 9. Test sending from the wallet
+
+The plugin is connected to the trading1 wallet. First, fund it from alpha:
+
+```bash
+CERT=~/dextest/dcr/trading1/rpc.cert
+
+# Get an address from trading1
+TRADING1_ADDR=$(dcrctl --simnet -s 127.0.0.1:19581 -u user -P pass -c $CERT \
+  --wallet getnewaddress)
+
+# Send DCR from alpha to trading1
+dcrctl --simnet -s 127.0.0.1:19562 -u user -P pass \
+  -c ~/dextest/dcr/alpha/rpc.cert --wallet sendtoaddress $TRADING1_ADDR 10.0
+
+# Mine a block to confirm
+cd ~/dextest/dcr/harness-ctl && ./mine-alpha 1
+```
+
+Then test the send page:
+
+1. In the store settings, click "Decred" in the sidebar
+2. Click the "Send" button in the Wallet card
+3. The page should show the spendable balance
+4. Get a destination address from alpha:
+   ```bash
+   dcrctl --simnet -s 127.0.0.1:19562 -u user -P pass \
+     -c ~/dextest/dcr/alpha/rpc.cert --wallet getnewaddress
+   ```
+5. Enter the address and an amount, then click "Send Transaction"
+6. A success message with the transaction ID should appear
+
+Note: the harness trading1 wallet is already unlocked, so sending works without setting `BTCPAY_DCR_WALLET_PASSPHRASE`. In production Docker deployments, that env var must be set.
 
 ## Troubleshooting
 

@@ -35,6 +35,7 @@ services:
       - --noclienttls
       - --grpclisten=
       - --enablevoting=false
+      - --pass=${BTCPAY_DCR_WALLET_PASSPHRASE:-}
     expose:
       - "9110"
     volumes:

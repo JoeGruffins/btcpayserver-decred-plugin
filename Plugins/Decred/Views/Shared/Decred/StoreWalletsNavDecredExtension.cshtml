@@ -1,9 +1,10 @@
-@using Microsoft.AspNetCore.Routing
-@{
-    var storeId = Context.GetRouteValue("storeId")?.ToString();
+@model BTCPayServer.Components.MainNav.MainNavViewModel
+
+@if (Model.Store != null)
+{
+    <li class="nav-item">
+        <a class="nav-link" href="/stores/@Model.Store.Id/decredlike/DCR">
+            Decred
+        </a>
+    </li>
 }
-<li class="nav-item">
-    <a class="nav-link" href="/stores/@storeId/decredlike/DCR">
-        Decred
-    </a>
-</li>

@@ -50,6 +50,16 @@
             </div>
         </div>
 
+        @* Wallet actions *@
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Wallet</h5>
+            </div>
+            <div class="card-body">
+                <a href="/stores/@Context.GetRouteValue("storeId")/decredlike/@Model.CryptoCode/send" class="btn btn-primary">Send</a>
+            </div>
+        </div>
+
         @* Payment method settings *@
         <form method="post" asp-antiforgery="true">
             <div class="card">
