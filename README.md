@@ -17,7 +17,7 @@ If you already run BTCPay Server via [btcpayserver-docker](https://github.com/bt
    ```bash
    cd "$BTCPAY_BASE_DIRECTORY/btcpayserver-docker"
    docker run -it --rm -v generated_dcr_wallet:/root/.dcrwallet \
-     ghcr.io/bisoncraft/decred:2.1.3 dcrwallet --create
+     ghcr.io/bisoncraft/decred:2.1.5 dcrwallet --create
    ```
 
    Set a passphrase and **save the seed phrase** - this is the wallet backup. To restore an existing wallet, answer "yes" when asked if you have an existing seed.
